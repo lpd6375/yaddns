@@ -7,24 +7,24 @@ async function init() {
     const res = await fetch('/admin/config', { headers: savedToken ? { 'Authorization': 'Bearer ' + savedToken } : {} })
     if (!res.ok) {
       msgEl.innerText = '无法加载配置';
-      return
+    } else {
+      const cfg = await res.json()
+
+      document.getElementById('interface').value = cfg.Interface || ''
+      const cf = cfg.Cloudflare || {}
+      document.getElementById('cf_token').value = cf.Token || ''
+      document.getElementById('cf_zone_id').value = cf.ZoneID || ''
+      document.getElementById('cf_record_id').value = cf.RecordID || ''
+      document.getElementById('cf_name').value = cf.Name || ''
+      document.getElementById('cf_ttl').value = cf.TTL || ''
+
+      const rt = cfg.Runtime || {}
+      document.getElementById('update_interval').value = rt.UpdateInterval || ''
+      document.getElementById('admin_addr').value = rt.AdminAddr || ''
+
+      const nt = cfg.Notify || {}
+      document.getElementById('wecom_webhook').value = nt.WecomWebhook || ''
     }
-    const cfg = await res.json()
-
-    document.getElementById('interface').value = cfg.Interface || ''
-    const cf = cfg.Cloudflare || {}
-    document.getElementById('cf_token').value = cf.Token || ''
-    document.getElementById('cf_zone_id').value = cf.ZoneID || ''
-    document.getElementById('cf_record_id').value = cf.RecordID || ''
-    document.getElementById('cf_name').value = cf.Name || ''
-    document.getElementById('cf_ttl').value = cf.TTL || ''
-
-    const rt = cfg.Runtime || {}
-    document.getElementById('update_interval').value = rt.UpdateInterval || ''
-    document.getElementById('admin_addr').value = rt.AdminAddr || ''
-
-    const nt = cfg.Notify || {}
-    document.getElementById('wecom_webhook').value = nt.WecomWebhook || ''
 
     document.getElementById('cfgForm').addEventListener('submit', async (e) => {
       e.preventDefault()
@@ -64,6 +64,7 @@ async function init() {
         msgEl.innerText = '保存失败: ' + txt
       }
     })
+
     // backups
     async function loadBackups() {
       const token = sessionStorage.getItem('admin_token') || ''
@@ -103,6 +104,62 @@ async function init() {
 
     document.getElementById('refreshBackups').addEventListener('click', loadBackups)
     loadBackups()
+
+    // routing & other sections
+    function showSection(name) {
+      document.querySelectorAll('.view').forEach((el) => el.style.display = 'none')
+      const el = document.getElementById(name)
+      if (el) el.style.display = ''
+    }
+
+    async function loadHealth() {
+      const token = sessionStorage.getItem('admin_token') || ''
+      const headers = token ? { 'Authorization': 'Bearer ' + token } : {}
+      const res = await fetch('/admin/health', { headers })
+      if (!res.ok) return
+      const j = await res.json()
+      document.getElementById('dashboardContent').innerText = JSON.stringify(j, null, 2)
+    }
+
+    async function loadLogs() {
+      const token = sessionStorage.getItem('admin_token') || ''
+      const headers = token ? { 'Authorization': 'Bearer ' + token } : {}
+      const tail = document.getElementById('logsTail').value || '200'
+      const res = await fetch('/admin/logs?tail=' + tail, { headers })
+      if (!res.ok) {
+        document.getElementById('logsContent').innerText = '无法获取日志'
+        return
+      }
+      const lines = await res.json()
+      document.getElementById('logsContent').innerText = lines.join('\n')
+    }
+
+    async function loadAudit() {
+      const token = sessionStorage.getItem('admin_token') || ''
+      const headers = token ? { 'Authorization': 'Bearer ' + token } : {}
+      const tail = document.getElementById('auditTail').value || '200'
+      const res = await fetch('/admin/audit?tail=' + tail, { headers })
+      if (!res.ok) {
+        document.getElementById('auditContent').innerText = '无法获取审计'
+        return
+      }
+      const arr = await res.json()
+      document.getElementById('auditContent').innerText = JSON.stringify(arr, null, 2)
+    }
+
+    document.getElementById('refreshLogs').addEventListener('click', loadLogs)
+    document.getElementById('refreshAudit').addEventListener('click', loadAudit)
+
+    function route() {
+      const hash = (location.hash || '#dashboard').replace('#', '')
+      showSection(hash)
+      if (hash === 'dashboard') loadHealth()
+      if (hash === 'logs') loadLogs()
+      if (hash === 'audit') loadAudit()
+    }
+
+    window.addEventListener('hashchange', route)
+    route()
   } catch (err) {
     msgEl.innerText = '错误: ' + err.message
   }

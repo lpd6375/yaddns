@@ -4,8 +4,6 @@ import (
     "bytes"
     "encoding/json"
     "fmt"
-    "io/ioutil"
-    "log"
     "net/http"
     "os"
     "time"

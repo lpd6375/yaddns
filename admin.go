@@ -2,6 +2,7 @@ package main
 
 import (
     "encoding/json"
+    "fmt"
     "io/ioutil"
     "log"
     "net"
@@ -9,8 +10,10 @@ import (
     "os"
     "path/filepath"
     "sort"
+    "strconv"
     "strings"
     "sync"
+    "sync/atomic"
     "time"
 )
 
@@ -22,6 +25,11 @@ func startAdmin(addr string) {
     mux.HandleFunc("/admin/config", requireAuth(handleConfig))
     mux.HandleFunc("/admin/backups", requireAuth(handleBackups))
     mux.HandleFunc("/admin/backups/restore", requireAuth(handleBackupRestore))
+    mux.HandleFunc("/admin/health", requireAuth(handleHealth))
+    mux.HandleFunc("/admin/logs", requireAuth(handleLogs))
+    mux.HandleFunc("/admin/audit", requireAuth(handleAudit))
+    // Prometheus scrape endpoint (optional, no auth)
+    mux.HandleFunc("/metrics", handleMetrics)
     mux.HandleFunc("/openapi.yaml", func(w http.ResponseWriter, r *http.Request) {
         http.ServeFile(w, r, "openapi.yaml")
     })
@@ -239,5 +247,83 @@ func handleBackupRestore(w http.ResponseWriter, r *http.Request) {
     loadConfig()
     writeAudit("admin", "backup_restore", r.RemoteAddr, req.File)
     w.WriteHeader(http.StatusNoContent)
+}
+
+// 健康检查
+func handleHealth(w http.ResponseWriter, r *http.Request) {
+    type h struct {
+        StartTime        string `json:"start_time"`
+        UptimeSeconds    int64  `json:"uptime_seconds"`
+        LastIP           string `json:"last_ip"`
+        LastUpdate       string `json:"last_update"`
+        UpdatePeriodSecs int64  `json:"update_period_seconds"`
+    }
+    uptime := int64(time.Since(startTime).Seconds())
+    lastUpdateStr := ""
+    if !lastUpdate.IsZero() {
+        lastUpdateStr = lastUpdate.UTC().Format(time.RFC3339)
+    }
+    resp := h{StartTime: startTime.UTC().Format(time.RFC3339), UptimeSeconds: uptime, LastIP: lastIP, LastUpdate: lastUpdateStr, UpdatePeriodSecs: int64(updatePeriod.Seconds())}
+    w.Header().Set("Content-Type", "application/json")
+    json.NewEncoder(w).Encode(resp)
+    writeAudit("admin", "health", getRequestIP(r), "")
+}
+
+// 日志 tail
+func handleLogs(w http.ResponseWriter, r *http.Request) {
+    tail := 200
+    if t := r.URL.Query().Get("tail"); t != "" {
+        if v, err := strconv.Atoi(t); err == nil && v > 0 {
+            tail = v
+        }
+    }
+    data, err := ioutil.ReadFile(logFile)
+    if err != nil {
+        http.Error(w, err.Error(), http.StatusInternalServerError)
+        return
+    }
+    lines := strings.Split(string(data), "\n")
+    if len(lines) > tail {
+        lines = lines[len(lines)-tail:]
+    }
+    w.Header().Set("Content-Type", "application/json")
+    json.NewEncoder(w).Encode(lines)
+    writeAudit("admin", "logs_tail", getRequestIP(r), fmt.Sprintf("tail=%d", tail))
+}
+
+// 审计日志 tail（解析 JSON 行）
+func handleAudit(w http.ResponseWriter, r *http.Request) {
+    tail := 200
+    if t := r.URL.Query().Get("tail"); t != "" {
+        if v, err := strconv.Atoi(t); err == nil && v > 0 {
+            tail = v
+        }
+    }
+    data, err := ioutil.ReadFile(auditLogPath)
+    if err != nil {
+        http.Error(w, err.Error(), http.StatusInternalServerError)
+        return
+    }
+    lines := strings.Split(strings.TrimSpace(string(data)), "\n")
+    if len(lines) > tail {
+        lines = lines[len(lines)-tail:]
+    }
+    var out []map[string]interface{}
+    for _, ln := range lines {
+        var obj map[string]interface{}
+        if err := json.Unmarshal([]byte(ln), &obj); err == nil {
+            out = append(out, obj)
+        }
+    }
+    w.Header().Set("Content-Type", "application/json")
+    json.NewEncoder(w).Encode(out)
+    writeAudit("admin", "audit_tail", getRequestIP(r), fmt.Sprintf("tail=%d", tail))
+}
+
+// Prometheus metrics
+func handleMetrics(w http.ResponseWriter, r *http.Request) {
+    w.Header().Set("Content-Type", "text/plain; version=0.0.4")
+    fmt.Fprintf(w, "# HELP icmp_ddns_updates_total Total successful updates\n# TYPE icmp_ddns_updates_total counter\nicmp_ddns_updates_total %d\n", atomic.LoadInt64(&updatesTotal))
+    fmt.Fprintf(w, "# HELP icmp_ddns_update_errors_total Total update errors\n# TYPE icmp_ddns_update_errors_total counter\nicmp_ddns_update_errors_total %d\n", atomic.LoadInt64(&updateErrorsTotal))
 }
 

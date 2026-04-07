@@ -1,6 +1,7 @@
 package main
 
 import (
+    "encoding/json"
     "fmt"
     "io"
     "io/ioutil"
@@ -9,17 +10,16 @@ import (
     "os/exec"
     "path/filepath"
     "time"
-    "gopkg.in/yaml.v3"
 )
 
-var configPath = "/etc/icmp-ddns/config.yaml"
+var configPath = "./config.json"
 
 func loadConfig() {
     data, err := ioutil.ReadFile(configPath)
     if err != nil {
         log.Fatal(err)
     }
-    if err := yaml.Unmarshal(data, &cfg); err != nil {
+    if err := json.Unmarshal(data, &cfg); err != nil {
         log.Fatal(err)
     }
     updatePeriod = time.Duration(cfg.Runtime.UpdateInterval) * time.Second
@@ -71,23 +71,23 @@ func saveConfig() (string, error) {
             return "", err
         }
 
-        // write new config atomically
-        tmp := configPath + ".tmp"
-        data, err := yaml.Marshal(&cfg)
-        if err != nil {
-            return "", err
-        }
-        if err := ioutil.WriteFile(tmp, data, 0644); err != nil {
-            return "", err
-        }
-        if err := os.Rename(tmp, configPath); err != nil {
-            return "", err
-        }
+            // write new config atomically
+            tmp := configPath + ".tmp"
+            data, err := json.MarshalIndent(&cfg, "", "  ")
+            if err != nil {
+                return "", err
+            }
+            if err := ioutil.WriteFile(tmp, data, 0644); err != nil {
+                return "", err
+            }
+            if err := os.Rename(tmp, configPath); err != nil {
+                return "", err
+            }
         return backup, nil
     } else if os.IsNotExist(err) {
         // No existing config, just write atomically
         tmp := configPath + ".tmp"
-        data, err := yaml.Marshal(&cfg)
+        data, err := json.MarshalIndent(&cfg, "", "  ")
         if err != nil {
             return "", err
         }

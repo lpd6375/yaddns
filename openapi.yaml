@@ -38,6 +38,46 @@ paths:
       responses:
         '204':
           description: restored
+  /admin/health:
+    get:
+      summary: Service health and status
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: OK
+  /admin/logs:
+    get:
+      summary: Tail application logs
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: tail
+          in: query
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: lines
+  /admin/audit:
+    get:
+      summary: Tail audit logs (JSON entries)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: tail
+          in: query
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: entries
+  /metrics:
+    get:
+      summary: Prometheus metrics
+      responses:
+        '200':
+          description: metrics
 components:
   securitySchemes:
     bearerAuth:

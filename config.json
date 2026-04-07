@@ -1,0 +1,20 @@
+{
+  "interface": "lo",
+  "cloudflare": {
+    "token": "",
+    "zone_id": "",
+    "record_id": "",
+    "name": "example.local",
+    "ttl": 120
+  },
+  "runtime": {
+    "update_interval": 60,
+    "admin_addr": ":8080",
+    "admin_token": "testtoken",
+    "admin_ip_whitelist": ["127.0.0.1"],
+    "admin_rate_limit_per_min": 60
+  },
+  "notify": {
+    "wecom_webhook": ""
+  }
+}

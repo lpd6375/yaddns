@@ -7,6 +7,7 @@ import (
     "io/ioutil"
     "log"
     "net/http"
+    "sync/atomic"
     "time"
 )
 
@@ -97,9 +98,20 @@ func updateCF(ip string) {
         log.Println(msg)
         writeLog(msg)
         notifyWecom("DDNS更新失败", msg)
+        atomic.AddInt64(&updateErrorsTotal, 1)
         return
     }
     defer resp.Body.Close()
+
+    if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+        body, _ := ioutil.ReadAll(resp.Body)
+        msg := fmt.Sprintf("❌ DDNS更新失败: status=%s body=%s", resp.Status, string(body))
+        log.Println(msg)
+        writeLog(msg)
+        notifyWecom("DDNS更新失败", msg)
+        atomic.AddInt64(&updateErrorsTotal, 1)
+        return
+    }
 
     msg := fmt.Sprintf("✅ DDNS更新成功\nIP: %s\n来源: %s", ip, ip)
 
@@ -107,6 +119,8 @@ func updateCF(ip string) {
     writeLog(msg)
 
     notifyWecom("DDNS更新成功", msg)
+
+    atomic.AddInt64(&updatesTotal, 1)
 
     lastIP = ip
     lastUpdate = time.Now()

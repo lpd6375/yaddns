@@ -11,6 +11,20 @@
   <div class="container">
     <h1>icmp-ddns 管理面板</h1>
 
+    <nav class="nav">
+      <a href="#dashboard">仪表盘</a> |
+      <a href="#config">配置</a> |
+      <a href="#backups">备份</a> |
+      <a href="#logs">日志</a> |
+      <a href="#audit">审计</a>
+    </nav>
+
+    <section id="dashboard" class="view" style="display:none">
+      <h2>仪表盘</h2>
+      <div id="dashboardContent">加载中...</div>
+    </section>
+
+    <section id="config" class="view">
     <form id="cfgForm">
       <label>管理 Token: <input id="admin_token" type="password" placeholder="管理 Token"/></label>
       <label>Interface: <input id="interface"/></label>
@@ -34,10 +48,28 @@
       </div>
     </form>
 
-      <section id="backups">
+      </form>
+
+      </section>
+
+      <section id="backups" class="view" style="display:none">
         <h2>备份与回滚</h2>
         <button id="refreshBackups">刷新备份列表</button>
         <ul id="backupsList"></ul>
+      </section>
+
+      <section id="logs" class="view" style="display:none">
+        <h2>日志</h2>
+        <label>Tail 行数: <input id="logsTail" value="200"/></label>
+        <button id="refreshLogs">刷新日志</button>
+        <pre id="logsContent"></pre>
+      </section>
+
+      <section id="audit" class="view" style="display:none">
+        <h2>审计</h2>
+        <label>Tail 条数: <input id="auditTail" value="200"/></label>
+        <button id="refreshAudit">刷新审计</button>
+        <pre id="auditContent"></pre>
       </section>
 
     <div id="msg" class="msg"></div>
