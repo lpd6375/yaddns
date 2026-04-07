@@ -1,0 +1,45 @@
+openapi: 3.0.0
+info:
+  title: icmp-ddns Admin API
+  version: 1.0.0
+paths:
+  /admin/config:
+    get:
+      summary: Get current configuration (masked)
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: OK
+    post:
+      summary: Update configuration
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+      responses:
+        '204':
+          description: Saved
+  /admin/backups:
+    get:
+      summary: List backups
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: list
+  /admin/backups/restore:
+    post:
+      summary: Restore backup file
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+      responses:
+        '204':
+          description: restored
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer

@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="zh-cn">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>icmp-ddns 管理面板</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+  <div class="container">
+    <h1>icmp-ddns 管理面板</h1>
+
+    <form id="cfgForm">
+      <label>管理 Token: <input id="admin_token" type="password" placeholder="管理 Token"/></label>
+      <label>Interface: <input id="interface"/></label>
+
+      <h2>Cloudflare</h2>
+      <label>Token: <input id="cf_token" type="password"/></label>
+      <label>ZoneID: <input id="cf_zone_id"/></label>
+      <label>RecordID: <input id="cf_record_id"/></label>
+      <label>Name: <input id="cf_name"/></label>
+      <label>TTL: <input id="cf_ttl" type="number"/></label>
+
+      <h2>Runtime</h2>
+      <label>Update Interval (s): <input id="update_interval" type="number"/></label>
+      <label>Admin Addr: <input id="admin_addr" placeholder=":8080"/></label>
+
+      <h2>Notify</h2>
+      <label>Wecom Webhook: <input id="wecom_webhook"/></label>
+
+      <div class="actions">
+        <button type="submit">保存</button>
+      </div>
+    </form>
+
+      <section id="backups">
+        <h2>备份与回滚</h2>
+        <button id="refreshBackups">刷新备份列表</button>
+        <ul id="backupsList"></ul>
+      </section>
+
+    <div id="msg" class="msg"></div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
