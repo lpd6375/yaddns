@@ -31,6 +31,12 @@ go run .
 - 访问: `http://localhost:8080/`（默认）。
 - API 文档（OpenAPI）: `http://localhost:8080/openapi.yaml`。
 
+通知集成
+
+- 企业微信（Webhook）: 在 `config` 的 `notify.wecom_webhook` 填写 webhook 地址，勾选 `enable_wecom` 开启。
+- Telegram: 在 `notify.telegram_bot_token` 填写 bot token（格式 `123456:ABC-DEF...`），在 `notify.telegram_chat_id` 填写 chat id，勾选 `enable_telegram` 开启。
+
+
 配置文件
 
 - 默认路径: `/etc/icmp-ddns/config.yaml`。

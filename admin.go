@@ -144,6 +144,12 @@ func handleConfig(w http.ResponseWriter, r *http.Request) {
         if masked.Cloudflare.Token != "" {
             masked.Cloudflare.Token = "*****"
         }
+        if masked.Runtime.AdminToken != "" {
+            masked.Runtime.AdminToken = "*****"
+        }
+        if masked.Notify.TelegramBotToken != "" {
+            masked.Notify.TelegramBotToken = "*****"
+        }
         if err := json.NewEncoder(w).Encode(masked); err != nil {
             http.Error(w, err.Error(), http.StatusInternalServerError)
         }
@@ -160,6 +166,21 @@ func handleConfig(w http.ResponseWriter, r *http.Request) {
             http.Error(w, err.Error(), http.StatusBadRequest)
             return
         }
+        // 保留敏感字段（如果前端传回掩码或空值则保留原值），然后持久化
+        old := cfg
+        if newCfg.Cloudflare.Token == "" || newCfg.Cloudflare.Token == "*****" {
+            newCfg.Cloudflare.Token = old.Cloudflare.Token
+        }
+        if newCfg.Runtime.AdminToken == "" || newCfg.Runtime.AdminToken == "*****" {
+            newCfg.Runtime.AdminToken = old.Runtime.AdminToken
+        }
+        if newCfg.Notify.TelegramBotToken == "" || newCfg.Notify.TelegramBotToken == "*****" {
+            newCfg.Notify.TelegramBotToken = old.Notify.TelegramBotToken
+        }
+        if newCfg.Notify.WecomWebhook == "" {
+            newCfg.Notify.WecomWebhook = old.Notify.WecomWebhook
+        }
+
         // 覆盖内存配置并持久化（saveConfig 返回备份路径）
         cfg = newCfg
         backup, err := saveConfig()

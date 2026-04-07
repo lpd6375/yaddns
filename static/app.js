@@ -24,6 +24,10 @@ async function init() {
 
       const nt = cfg.Notify || {}
       document.getElementById('wecom_webhook').value = nt.WecomWebhook || ''
+      document.getElementById('enable_wecom').checked = !!nt.EnableWecom
+      document.getElementById('telegram_token').value = nt.TelegramBotToken || ''
+      document.getElementById('telegram_chat_id').value = nt.TelegramChatID || ''
+      document.getElementById('enable_telegram').checked = !!nt.EnableTelegram
     }
 
     document.getElementById('cfgForm').addEventListener('submit', async (e) => {
@@ -44,7 +48,11 @@ async function init() {
           AdminAddr: document.getElementById('admin_addr').value || ':8080'
         },
         Notify: {
-          WecomWebhook: document.getElementById('wecom_webhook').value
+          WecomWebhook: document.getElementById('wecom_webhook').value,
+          EnableWecom: document.getElementById('enable_wecom').checked,
+          TelegramBotToken: document.getElementById('telegram_token').value,
+          TelegramChatID: document.getElementById('telegram_chat_id').value,
+          EnableTelegram: document.getElementById('enable_telegram').checked,
         }
       }
 

@@ -15,6 +15,10 @@
     "admin_rate_limit_per_min": 60
   },
   "notify": {
-    "wecom_webhook": ""
+    "wecom_webhook": "",
+    "enable_wecom": true,
+    "telegram_bot_token": "",
+    "telegram_chat_id": "",
+    "enable_telegram": false
   }
 }

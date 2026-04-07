@@ -97,7 +97,7 @@ func updateCF(ip string) {
         msg := "❌ DDNS更新失败: " + err.Error()
         log.Println(msg)
         writeLog(msg)
-        notifyWecom("DDNS更新失败", msg)
+        notifyAll("DDNS更新失败", msg)
         atomic.AddInt64(&updateErrorsTotal, 1)
         return
     }
@@ -108,7 +108,7 @@ func updateCF(ip string) {
         msg := fmt.Sprintf("❌ DDNS更新失败: status=%s body=%s", resp.Status, string(body))
         log.Println(msg)
         writeLog(msg)
-        notifyWecom("DDNS更新失败", msg)
+        notifyAll("DDNS更新失败", msg)
         atomic.AddInt64(&updateErrorsTotal, 1)
         return
     }
@@ -118,7 +118,7 @@ func updateCF(ip string) {
     log.Println(msg)
     writeLog(msg)
 
-    notifyWecom("DDNS更新成功", msg)
+    notifyAll("DDNS更新成功", msg)
 
     atomic.AddInt64(&updatesTotal, 1)
 

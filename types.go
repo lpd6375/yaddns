@@ -20,6 +20,10 @@ type Config struct {
     } `yaml:"runtime" json:"runtime"`
     Notify struct {
         WecomWebhook string `yaml:"wecom_webhook" json:"wecom_webhook"`
+        EnableWecom  bool   `yaml:"enable_wecom" json:"enable_wecom"`
+        TelegramBotToken string `yaml:"telegram_bot_token" json:"telegram_bot_token"`
+        TelegramChatID   string `yaml:"telegram_chat_id" json:"telegram_chat_id"`
+        EnableTelegram   bool   `yaml:"enable_telegram" json:"enable_telegram"`
     } `yaml:"notify" json:"notify"`
 }
 
